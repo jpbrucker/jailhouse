@@ -16,7 +16,7 @@
 #include <asm/types.h>
 #include <asm/paging.h>
 
-#define NUM_ENTRY_REGS			6
+#define NUM_ENTRY_REGS			13
 
 /* Keep in sync with struct per_cpu! */
 #define PERCPU_SIZE_SHIFT		13
@@ -31,6 +31,8 @@ struct per_cpu {
 	/* Keep these two in sync with defines above! */
 	u8 stack[PAGE_SIZE];
 	unsigned long linux_sp;
+	unsigned long linux_ret;
+	unsigned long linux_flags;
 
 	unsigned int cpu_id;
 //	u32 apic_id;
