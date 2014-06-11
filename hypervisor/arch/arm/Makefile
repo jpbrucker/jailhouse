@@ -14,4 +14,9 @@ KBUILD_AFLAGS := $(filter-out -include asm/unified.h,$(KBUILD_AFLAGS))
 
 always := built-in.o
 
-obj-y := entry.o setup.o lib.o
+obj-y := entry.o dbg-write.o setup.o lib.o
+obj-$(CONFIG_ARCH_VEXPRESS) += dbg-write-pl011.o
+
+# Needed for kconfig
+ccflags-y += -I$(KERNELDIR)/include
+asflags-y += -I$(KERNELDIR)/include
