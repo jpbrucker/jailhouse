@@ -33,6 +33,7 @@ struct per_cpu {
 	unsigned long linux_sp;
 	unsigned long linux_ret;
 	unsigned long linux_flags;
+	unsigned long linux_reg[NUM_ENTRY_REGS];
 
 	unsigned int cpu_id;
 //	u32 apic_id;
@@ -40,8 +41,6 @@ struct per_cpu {
 
 	u32 stats[JAILHOUSE_NUM_CPU_STATS];
 
-	unsigned long linux_reg[NUM_ENTRY_REGS];
-//	unsigned long linux_ip;
 	bool initialized;
 
 	volatile bool stop_cpu;
