@@ -80,7 +80,7 @@ int arch_cpu_init(struct per_cpu *cpu_data)
 
 int arch_init_late(void)
 {
-	return -ENOSYS;
+	return 0;
 }
 
 void arch_cpu_activate_vmm(struct per_cpu *cpu_data)
