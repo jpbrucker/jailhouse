@@ -26,6 +26,9 @@
 #ifndef __ASSEMBLY__
 
 #include <asm/cell.h>
+#include <asm/spinlock.h>
+
+struct pending_irq;
 
 struct per_cpu {
 	/* Keep these two in sync with defines above! */
@@ -36,6 +39,11 @@ struct per_cpu {
 	unsigned long linux_reg[NUM_ENTRY_REGS];
 
 	unsigned int cpu_id;
+
+	/* Other CPUs can insert sgis into the pending array */
+	spinlock_t gic_lock;
+	struct pending_irq *pending_irqs;
+	struct pending_irq *first_pending;
 	/* Only GICv3: redistributor base */
 	void *gicr_base;
 
