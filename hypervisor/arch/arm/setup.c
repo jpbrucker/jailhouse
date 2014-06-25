@@ -76,6 +76,10 @@ int arch_cpu_init(struct per_cpu *cpu_data)
 	/* Setup guest traps */
 	arm_write_sysreg(HCR, hcr);
 
+	err = arch_spin_init();
+	if (err)
+		return err;
+
 	err = arch_mmu_cpu_cell_init(cpu_data);
 	if (err)
 		return err;
@@ -112,7 +116,6 @@ void arch_cpu_restore(struct per_cpu *cpu_data)
 #include <jailhouse/control.h>
 #include <jailhouse/string.h>
 void arch_shutdown_cpu(unsigned int cpu_id) {}
-void arch_cell_destroy(struct per_cpu *cpu_data, struct cell *new_cell) {}
 void arch_config_commit(struct per_cpu *cpu_data,
 			struct cell *cell_added_removed) {}
 void arch_shutdown(void) {}
