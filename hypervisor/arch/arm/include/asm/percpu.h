@@ -26,6 +26,7 @@
 #ifndef __ASSEMBLY__
 
 #include <asm/cell.h>
+#include <asm/psci.h>
 #include <asm/spinlock.h>
 
 struct pending_irq;
@@ -52,6 +53,9 @@ struct per_cpu {
 	u32 stats[JAILHOUSE_NUM_CPU_STATS];
 
 	bool initialized;
+
+	/* The mbox will be accessed with a ldrd, which requires alignment */
+	__attribute__((aligned(8))) struct psci_mbox psci_mbox;
 
 	volatile bool stop_cpu;
 	volatile bool wait_for_sipi;
