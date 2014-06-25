@@ -111,13 +111,7 @@ void arch_cpu_restore(struct per_cpu *cpu_data)
 #include <jailhouse/processor.h>
 #include <jailhouse/control.h>
 #include <jailhouse/string.h>
-void arch_suspend_cpu(unsigned int cpu_id) {}
-void arch_resume_cpu(unsigned int cpu_id) {}
-void arch_reset_cpu(unsigned int cpu_id) {}
-void arch_park_cpu(unsigned int cpu_id) {}
 void arch_shutdown_cpu(unsigned int cpu_id) {}
-int arch_cell_create(struct per_cpu *cpu_data, struct cell *new_cell)
-{ return -ENOSYS; }
 void arch_cell_destroy(struct per_cpu *cpu_data, struct cell *new_cell) {}
 void arch_config_commit(struct per_cpu *cpu_data,
 			struct cell *cell_added_removed) {}
