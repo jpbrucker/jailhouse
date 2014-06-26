@@ -23,6 +23,7 @@ endif
 
 ifeq ($(SRCARCH),arm)
 KBUILD_CFLAGS += -marm
+KBUILD_CPPFLAGS += -DARCH_LINK
 endif
 
 ifneq ($(wildcard $(src)/include/jailhouse/config.h),)
