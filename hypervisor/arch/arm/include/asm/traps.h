@@ -33,6 +33,13 @@ struct trap_context {
 	u32 pc;
 };
 
+struct mmio_access {
+	unsigned long addr;
+	bool is_write;
+	unsigned int size;
+	unsigned long val;
+};
+
 typedef int (*trap_handler)(struct per_cpu *cpu_data,
 			     struct trap_context *ctx);
 
@@ -86,6 +93,13 @@ static inline void access_usr_reg(struct trap_context *ctx, u8 reg,
 	else
 		ctx->regs[reg] = *val;
 }
+
+void access_cell_reg(struct trap_context *ctx, u8 reg, unsigned long *val,
+		     bool is_read);
+void arch_skip_instruction(struct trap_context *ctx);
+
+int arch_handle_dabt(struct per_cpu *cpu_data, struct trap_context *ctx);
+int arch_mmio_access(struct mmio_access *access);
 
 #endif /* !__ASSEMBLY__ */
 #endif /* !_JAILHOUSE_ASM_TRAPS_H */
