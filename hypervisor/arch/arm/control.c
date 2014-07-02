@@ -17,6 +17,7 @@
 #include <asm/traps.h>
 #include <jailhouse/control.h>
 #include <jailhouse/printk.h>
+#include <jailhouse/processor.h>
 #include <jailhouse/string.h>
 
 static void arch_reset_el1(struct registers *regs)
@@ -139,6 +140,28 @@ static void arch_suspend_self(struct per_cpu *cpu_data)
 		arch_cpu_tlb_flush(cpu_data);
 }
 
+static void arch_dump_exit(const char *reason)
+{
+	unsigned long pc;
+
+	arm_read_banked_reg(ELR_hyp, pc);
+	printk("Unhandled HYP %s exit at 0x%x\n", reason, pc);
+}
+
+static void arch_dump_abt(bool is_data)
+{
+	u32 hxfar;
+	u32 esr;
+
+	arm_read_sysreg(ESR_EL2, esr);
+	if (is_data)
+		arm_read_sysreg(HDFAR, hxfar);
+	else
+		arm_read_sysreg(HIFAR, hxfar);
+
+	printk("  paddr=0x%lx esr=0x%x\n", hxfar, esr);
+}
+
 struct registers* arch_handle_exit(struct per_cpu *cpu_data,
 				   struct registers *regs)
 {
@@ -149,10 +172,27 @@ struct registers* arch_handle_exit(struct per_cpu *cpu_data,
 	case EXIT_REASON_TRAP:
 		arch_handle_trap(cpu_data, regs);
 		break;
+
+	case EXIT_REASON_UNDEF:
+		arch_dump_exit("undef");
+		panic_stop(cpu_data);
+	case EXIT_REASON_DABT:
+		arch_dump_exit("data abort");
+		arch_dump_abt(true);
+		panic_stop(cpu_data);
+	case EXIT_REASON_PABT:
+		arch_dump_exit("prefetch abort");
+		arch_dump_abt(false);
+		panic_stop(cpu_data);
+	case EXIT_REASON_HVC:
+		arch_dump_exit("hvc");
+		panic_stop(cpu_data);
+	case EXIT_REASON_FIQ:
+		arch_dump_exit("fiq");
+		panic_stop(cpu_data);
 	default:
-		printk("Internal error: %d exit not implemented\n",
-				regs->exit_reason);
-		while(1);
+		arch_dump_exit("unknown");
+		panic_stop(cpu_data);
 	}
 
 	return regs;
@@ -268,4 +308,20 @@ void arch_config_commit(struct per_cpu *cpu_data,
 	}
 
 	arch_cpu_tlb_flush(cpu_data);
+}
+
+void arch_panic_stop(struct per_cpu *cpu_data)
+{
+	psci_cpu_off(cpu_data);
+	__builtin_unreachable();
+}
+
+void arch_panic_halt(struct per_cpu *cpu_data)
+{
+	/* Won't return to panic_halt */
+	if (phys_processor_id() == panic_cpu)
+		panic_in_progress = 0;
+
+	psci_cpu_off(cpu_data);
+	__builtin_unreachable();
 }

@@ -125,5 +125,3 @@ void arch_cpu_restore(struct per_cpu *cpu_data)
 #include <jailhouse/string.h>
 void arch_shutdown_cpu(unsigned int cpu_id) {}
 void arch_shutdown(void) {}
-void arch_panic_stop(struct per_cpu *cpu_data) {__builtin_unreachable();}
-void arch_panic_halt(struct per_cpu *cpu_data) {}
