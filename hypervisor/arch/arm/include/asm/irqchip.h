@@ -46,6 +46,8 @@ struct sgi {
 struct irqchip_ops {
 	int	(*init)(void);
 	int	(*cpu_init)(struct per_cpu *cpu_data);
+	void	(*cell_init)(struct cell *cell);
+	void	(*cell_exit)(struct cell *cell);
 	int	(*cpu_reset)(struct per_cpu *cpu_data);
 
 	int	(*send_sgi)(struct sgi *sgi);
@@ -80,6 +82,10 @@ struct pending_irq {
 int irqchip_init(void);
 int irqchip_cpu_init(struct per_cpu *cpu_data);
 int irqchip_cpu_reset(struct per_cpu *cpu_data);
+
+void irqchip_cell_init(struct cell *cell);
+void irqchip_cell_exit(struct cell *cell);
+void irqchip_root_cell_shrink(struct cell *cell);
 
 int irqchip_send_sgi(struct sgi *sgi);
 void irqchip_handle_irq(struct per_cpu *cpu_data);
