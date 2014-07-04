@@ -166,7 +166,6 @@ static int gic_cpu_init(struct per_cpu *cpu_data)
 static void gic_route_spis(struct cell *config_cell, struct cell *dest_cell)
 {
 	int i;
-	u64 spis = config_cell->arch.spis;
 	void *irouter = gicd_base + GICD_IROUTER;
 	unsigned int first_cpu;
 
@@ -175,7 +174,7 @@ static void gic_route_spis(struct cell *config_cell, struct cell *dest_cell)
 		break;
 
 	for (i = 0; i < 64; i++, irouter += 8) {
-		if (test_bit(i, (unsigned long *)&spis))
+		if (spi_in_cell(config_cell, i))
 			writeq_relaxed(first_cpu, irouter);
 	}
 }
@@ -435,6 +434,9 @@ static int gic_handle_redist_access(struct per_cpu *cpu_data,
 static int gic_mmio_access(struct per_cpu *cpu_data, struct mmio_access *access)
 {
 	void *address = (void *)access->addr;
+
+	if (address >= gicd_base && address < gicd_base + gicd_size)
+		return gic_handle_dist_access(cpu_data, access);
 
 	if (address >= gicr_base && address < gicr_base + gicr_size)
 		return gic_handle_redist_access(cpu_data, access);

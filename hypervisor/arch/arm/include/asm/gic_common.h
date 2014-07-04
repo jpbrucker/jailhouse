@@ -40,4 +40,13 @@
 #define is_ppi(irqn)			((irqn) > 15 && (irqn) < 32)
 #define is_spi(irqn)			((irqn) > 31 && (irqn) < 1020)
 
+#ifndef __ASSEMBLY__
+
+struct mmio_access;
+struct per_cpu;
+
+int gic_handle_dist_access(struct per_cpu *cpu_data,
+			   struct mmio_access *access);
+
+#endif /* !__ASSEMBLY__ */
 #endif /* !_JAILHOUSE_ASM_GIC_COMMON_H */
