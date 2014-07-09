@@ -28,6 +28,7 @@
 #include <asm/cell.h>
 #include <asm/psci.h>
 #include <asm/spinlock.h>
+#include <jailhouse/control.h>
 
 struct pending_irq;
 
@@ -40,6 +41,7 @@ struct per_cpu {
 	unsigned long linux_reg[NUM_ENTRY_REGS];
 
 	unsigned int cpu_id;
+	unsigned int virt_id;
 
 	/* Other CPUs can insert sgis into the pending array */
 	spinlock_t gic_lock;
@@ -75,6 +77,23 @@ static inline struct registers *guest_regs(struct per_cpu *cpu_data)
 	/* Assumes that the trap handler is entered with an empty stack */
 	return (struct registers *)(cpu_data->stack + PERCPU_STACK_END
 			- sizeof(struct registers));
+}
+
+static inline unsigned int cpu_phys2virt(unsigned int cpu_id)
+{
+	return per_cpu(cpu_id)->virt_id;
+}
+
+static inline unsigned int cpu_virt2phys(struct cell *cell, unsigned int virt_id)
+{
+	unsigned int cpu;
+
+	for_each_cpu(cpu, cell->cpu_set) {
+		if (per_cpu(cpu)->virt_id == virt_id)
+			return cpu;
+	}
+
+	return -1;
 }
 
 /* Validate defines */
