@@ -15,6 +15,9 @@
 
 #include <asm/types.h>
 
+/* AMBA's biosfood */
+#define AMBA_DEVICE	0xb105f00d
+
 #ifndef __ASSEMBLY__
 
 static inline void writeb_relaxed(u8 val, volatile void *addr)
