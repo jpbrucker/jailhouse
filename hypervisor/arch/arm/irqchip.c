@@ -310,7 +310,6 @@ int irqchip_init(void)
 	pidr2 = readl_relaxed(gicd_base + GICD_PIDR2);
 	switch (GICD_PIDR2_ARCH(pidr2)) {
 	case 0x2:
-		break;
 	case 0x3:
 	case 0x4:
 		memcpy(&irqchip, &gic_irqchip, sizeof(struct irqchip_ops));
