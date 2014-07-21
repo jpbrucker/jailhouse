@@ -63,6 +63,7 @@ struct per_cpu {
 	bool cpu_stopped;
 	bool cell_pages_dirty;
 	int shutdown_state;
+	bool shutdown;
 	bool failed;
 } __attribute__((aligned(PAGE_SIZE)));
 

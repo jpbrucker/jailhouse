@@ -90,12 +90,14 @@ static void arch_reset_el1(struct registers *regs)
 
 void arch_reset_self(struct per_cpu *cpu_data)
 {
-	int err;
+	int err = 0;
 	unsigned long reset_address;
 	struct cell *cell = cpu_data->cell;
 	struct registers *regs = guest_regs(cpu_data);
+	bool is_shutdown = cpu_data->shutdown;
 
-	err = arch_mmu_cpu_cell_init(cpu_data);
+	if (!is_shutdown)
+		err = arch_mmu_cpu_cell_init(cpu_data);
 	if (err)
 		printk("MMU setup failed\n");
 	/*
@@ -112,12 +114,15 @@ void arch_reset_self(struct per_cpu *cpu_data)
 	 */
 	irqchip_eoi_irq(SGI_CPU_OFF, true);
 
-	err = irqchip_cpu_reset(cpu_data);
-	if (err)
-		printk("IRQ setup failed\n");
+	/* irqchip_cpu_shutdown already resets the GIC on all CPUs. */
+	if (!is_shutdown) {
+		err = irqchip_cpu_reset(cpu_data);
+		if (err)
+			printk("IRQ setup failed\n");
+	}
 
 	/* Wait for the driver to call cpu_up */
-	if (cell == &root_cell)
+	if (cell == &root_cell || is_shutdown)
 		reset_address = arch_smp_spin(cpu_data, root_cell.arch.smp);
 	else
 		reset_address = arch_smp_spin(cpu_data, cell->arch.smp);
@@ -130,6 +135,10 @@ void arch_reset_self(struct per_cpu *cpu_data)
 
 	arm_write_banked_reg(ELR_hyp, reset_address);
 	arm_write_banked_reg(SPSR_hyp, RESET_PSR);
+
+	if (is_shutdown)
+		/* Won't return here. */
+		arch_shutdown_self(cpu_data);
 
 	vmreturn(regs);
 }
@@ -196,6 +205,10 @@ struct registers* arch_handle_exit(struct per_cpu *cpu_data,
 		arch_dump_exit("unknown");
 		panic_stop(cpu_data);
 	}
+
+	if (cpu_data->shutdown)
+		/* Won't return here. */
+		arch_shutdown_self(cpu_data);
 
 	return regs;
 }

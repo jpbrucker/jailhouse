@@ -118,14 +118,61 @@ void arch_cpu_activate_vmm(struct per_cpu *cpu_data)
 	while (1);
 }
 
+void arch_shutdown_self(struct per_cpu *cpu_data)
+{
+	irqchip_cpu_shutdown(cpu_data);
+
+	/* Free the guest */
+	arm_write_sysreg(HCR, 0);
+	arm_write_sysreg(TPIDR_EL2, 0);
+	arm_write_sysreg(VTCR_EL2, 0);
+
+	/* Remove stage-2 mappings */
+	arch_cpu_tlb_flush(cpu_data);
+
+	/* TLB flush needs the cell's VMID */
+	isb();
+	arm_write_sysreg(VTTBR_EL2, 0);
+
+	/* Return to EL1 */
+	arch_shutdown_mmu(cpu_data);
+}
+
+/*
+ * This handler is only used for cells, not for the root. The core already
+ * issued a cpu_suspend. arch_reset_cpu will cause arch_reset_self to be
+ * called on that CPU, which will in turn call arch_shutdown_self.
+ */
+void arch_shutdown_cpu(unsigned int cpu_id)
+{
+	struct per_cpu *cpu_data = per_cpu(cpu_id);
+
+	cpu_data->virt_id = cpu_id;
+	cpu_data->shutdown = true;
+
+	if (psci_wait_cpu_stopped(cpu_id))
+		printk("FATAL: unable to stop CPU%d\n", cpu_id);
+
+	arch_reset_cpu(cpu_id);
+}
+
+void arch_shutdown(void)
+{
+	unsigned int cpu;
+	struct cell *cell = root_cell.next;
+
+	/* Re-route each SPI to CPU0 */
+	for (; cell != NULL; cell = cell->next)
+		irqchip_cell_exit(cell);
+
+	/*
+	 * Let the exit handler call reset_self to let the core finish its
+	 * shutdown function and release its lock.
+	 */
+	for_each_cpu(cpu, root_cell.cpu_set)
+		per_cpu(cpu)->shutdown = true;
+}
+
 void arch_cpu_restore(struct per_cpu *cpu_data)
 {
 }
-
-// catch missing symbols
-#include <jailhouse/printk.h>
-#include <jailhouse/processor.h>
-#include <jailhouse/control.h>
-#include <jailhouse/string.h>
-void arch_shutdown_cpu(unsigned int cpu_id) {}
-void arch_shutdown(void) {}
