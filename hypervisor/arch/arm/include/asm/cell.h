@@ -13,6 +13,7 @@
 #ifndef _JAILHOUSE_ASM_CELL_H
 #define _JAILHOUSE_ASM_CELL_H
 
+#include <asm/spinlock.h>
 #include <asm/types.h>
 
 #ifndef __ASSEMBLY__
@@ -23,6 +24,9 @@
 
 struct arch_cell {
 	struct paging_structures mm;
+
+	spinlock_t caches_lock;
+	bool needs_flush;
 };
 
 struct cell {
