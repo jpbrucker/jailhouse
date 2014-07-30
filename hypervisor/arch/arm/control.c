@@ -134,6 +134,9 @@ static void arch_reset_self(struct per_cpu *cpu_data)
 static void arch_suspend_self(struct per_cpu *cpu_data)
 {
 	psci_suspend(cpu_data);
+
+	if (cpu_data->cell_pages_dirty)
+		arch_cpu_tlb_flush(cpu_data);
 }
 
 struct registers* arch_handle_exit(struct per_cpu *cpu_data,
@@ -240,4 +243,29 @@ void arch_cell_destroy(struct per_cpu *cpu_data, struct cell *cell)
 
 	for_each_cpu(cpu, cell->cpu_set)
 		arch_reset_cpu(cpu);
+}
+
+void arch_config_commit(struct per_cpu *cpu_data,
+			struct cell *cell_added_removed)
+{
+	unsigned int cpu;
+
+	/*
+	 * Reconfiguration of the page tables is done while the cells are
+	 * spinning. They will need to flush their TLBs right after they are
+	 * resumed.
+	 * When init_late calls arch_config_commit, the root cell's bitmap has
+	 * not yet been populated by register_root_cpu, so the only invalidated
+	 * TLBs are those of the master CPU.
+	 */
+	for_each_cpu_except(cpu, root_cell.cpu_set, cpu_data->cpu_id)
+		per_cpu(cpu)->cell_pages_dirty = true;
+
+	if (cell_added_removed) {
+		for_each_cpu_except(cpu, cell_added_removed->cpu_set,
+				    cpu_data->cpu_id)
+			per_cpu(cpu)->cell_pages_dirty = true;
+	}
+
+	arch_cpu_tlb_flush(cpu_data);
 }

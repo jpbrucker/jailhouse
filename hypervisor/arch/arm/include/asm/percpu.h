@@ -58,7 +58,7 @@ struct per_cpu {
 	__attribute__((aligned(8))) struct psci_mbox psci_mbox;
 
 	bool cpu_stopped;
-	bool flush_caches;
+	bool cell_pages_dirty;
 	int shutdown_state;
 	bool failed;
 } __attribute__((aligned(PAGE_SIZE)));
