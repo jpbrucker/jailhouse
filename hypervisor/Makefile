@@ -21,6 +21,10 @@ KBUILD_CFLAGS += -mcmodel=kernel
 KBUILD_CPPFLAGS += -m64
 endif
 
+ifeq ($(SRCARCH),arm)
+KBUILD_CFLAGS += -marm
+endif
+
 ifneq ($(wildcard $(src)/include/jailhouse/config.h),)
 KBUILD_CFLAGS += -include $(src)/include/jailhouse/config.h
 endif
