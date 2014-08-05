@@ -12,6 +12,7 @@
 
 #include <asm/control.h>
 #include <asm/irqchip.h>
+#include <asm/platform.h>
 #include <asm/processor.h>
 #include <asm/sysregs.h>
 #include <asm/traps.h>
@@ -277,6 +278,22 @@ void arch_handle_sgi(struct per_cpu *cpu_data, u32 irqn)
 	default:
 		printk("WARN: unknown SGI received %d\n", irqn);
 	}
+}
+
+/*
+ * Handle the maintenance interrupt, the rest is injected into the cell.
+ * Return true when the IRQ has been handled by the hyp.
+ */
+bool arch_handle_phys_irq(struct per_cpu *cpu_data, u32 irqn)
+{
+	if (irqn == MAINTENANCE_IRQ) {
+		irqchip_inject_pending(cpu_data);
+		return true;
+	}
+
+	irqchip_set_pending(cpu_data, irqn, true);
+
+	return false;
 }
 
 int arch_cell_create(struct per_cpu *cpu_data, struct cell *cell)
