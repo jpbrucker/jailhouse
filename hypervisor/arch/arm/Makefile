@@ -23,6 +23,8 @@ obj-$(CONFIG_ARM_GIC_V3) += gic-v3.o
 obj-$(CONFIG_ARM_GIC) += gic-v2.o
 obj-$(CONFIG_ARCH_VEXPRESS) += dbg-write-pl011.o
 obj-$(CONFIG_ARCH_VEXPRESS) += smp-vexpress.o
+obj-$(CONFIG_ARCH_EXYNOS) += smp-exynos.o
+obj-$(CONFIG_SERIAL_SAMSUNG) += dbg-write-samsung.o
 
 # Needed for kconfig
 ccflags-y += -I$(KERNELDIR)/include

@@ -55,7 +55,28 @@
 # define MAINTENANCE_IRQ 25
 # define SYSREGS_BASE	0x1c010000
 
-#endif /* CONFIG_ARCH_VEXPRESS */
+#elif defined(CONFIG_ARCH_EXYNOS) /* !CONFIG_ARCH_VEXPRESS */
+/*
+ * Odroid-XU definitions (exynos5410)
+ */
+#define UART_BASE_PHYS	((void *)0x12c20000)
+#define UART_BASE_VIRT	((void *)0xf7020000)
+
+# define GICD_BASE	((void *)0x10481000)
+# define GICD_SIZE	0x1000
+# define GICC_BASE	((void *)0x10482000)
+# define GICC_SIZE	0x2000
+# define GICH_BASE	((void *)0x10484000)
+# define GICH_SIZE	0x2000
+# define GICV_BASE	((void *)0x10486000)
+# define GICV_SIZE	0x2000
+# define MAINTENANCE_IRQ 9
+
+# define SYSREGS_BASE	0x02073000
+
+# include <asm/gic_v2.h>
+
+#endif /* ARCH_EXYNOS */
 
 #define HOTPLUG_SPIN	1
 /*
