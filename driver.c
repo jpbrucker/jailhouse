@@ -97,7 +97,7 @@ static bool enabled;
 static void *hypervisor_mem;
 static unsigned long hv_core_percpu_size;
 static cpumask_t offlined_cpus;
-static atomic_t call_done;
+static atomic_t call_done, leave_hyp;
 static int error_code;
 static LIST_HEAD(cells);
 static struct cell *root_cell;
@@ -509,6 +509,11 @@ static void leave_hypervisor(void *info)
 	     size -= PAGE_SIZE, page += PAGE_SIZE)
 		readl(page);
 
+	/* Wait for all CPUs to receive the SMP call; */
+	atomic_inc(&leave_hyp);
+	while (atomic_read(&leave_hyp) != num_online_cpus())
+		cpu_relax();
+
 	/* either returns 0 or the same error code across all CPUs */
 	err = jailhouse_call(JAILHOUSE_HC_DISABLE);
 	if (err)
@@ -536,6 +541,7 @@ static int jailhouse_disable(void)
 	preempt_disable();
 
 	atomic_set(&call_done, 0);
+	atomic_set(&leave_hyp, 0);
 	on_each_cpu(leave_hypervisor, NULL, 0);
 	while (atomic_read(&call_done) != num_online_cpus())
 		cpu_relax();
